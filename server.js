@@ -7,6 +7,11 @@ const app = express();
 
 app.use(express.json());
 
+//default route
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
+
 //create user
 app.post("/signup", async (req, res) => {
   try {
@@ -21,8 +26,33 @@ app.post("/signup", async (req, res) => {
 //getUSers in db
 app.get("/getUsers", async (req, res) => {
   try {
-    const user = await User.find({});
+    const user = await User.find(
+      {},
+      { __v: 0, password: 0, createdAt: 0, updatedAt: 0 }
+    );
     res.status(200).json(user);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+//update user in db
+app.put("/updateUser/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndUpdate(id, req.body);
+    if (!user) {
+      console.log("User not found");
+      res.status(404).json({ message: "User not found" });
+    }
+    const updatedUser = await User.findById(id, {
+      __v: 0,
+      password: 0,
+      createdAt: 0,
+      updatedAt: 0,
+    });
+    res.status(200).json(updatedUser);
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ message: error.message });
